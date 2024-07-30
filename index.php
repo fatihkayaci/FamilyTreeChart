@@ -29,8 +29,10 @@
                     <option value="male">Erkek</option>
                     <option value="female">Kadın</option>
                 </select><br><br>
-                <label for="parentNo">Aile No:</label>
-                <input type="number" id="parentNo" name="parentNo"><br><br>
+                <label for="parentNo">Anne/Baba:</label>
+                <select id="parentNo" name="parentNo">
+                    <option value="">Seçiniz</option>
+                </select><br><br>
                 <label for="wifeNo">Eş No:</label>
                 <input type="number" id="wifeNo" name="wifeNo"><br><br>
                 <button type="button" id="addPerson">Ekle</button>

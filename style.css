@@ -38,6 +38,12 @@ body {
     cursor: pointer;
 }
 /* aaaaaaaa */
+.person-row {
+    display: flex;
+    justify-content: center;
+    margin: 20px 0;
+}
+
 .person-avatar {
     background-color: #aaa;
     border-radius: 50%;
@@ -51,12 +57,5 @@ body {
     width: 100px;
     height: 100px;
     border-radius: 50%;
-    background: black;
     object-fit: cover;
-}
-
-#personsContainer {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
 }
