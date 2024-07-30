@@ -1,4 +1,3 @@
-// script.js
 
 document.addEventListener('DOMContentLoaded', function() {
     var popup = document.getElementById('popup');
@@ -21,6 +20,40 @@ document.addEventListener('DOMContentLoaded', function() {
             popup.style.display = 'none';
         }
     }
+    function loadPersons() {
+        $.ajax({
+            url: 'Controller/getPersons.php',
+            type: 'GET',
+            dataType: 'json',
+            success: function(response) {
+                if (response.error) {
+                    alert(response.error);
+                    return;
+                }
+                displayPersons(response);
+            },
+            error: function(xhr, status, error) {
+                alert('Bir hata oluştu: ' + error);
+            }
+        });
+    }
+
+    // <img src="path/to/default/avatar.png" alt="${person.firstName}" class="avatar-img">
+    function displayPersons(persons) {
+        // Örneğin, bir container içinde kişilerle ilgili bilgileri gösterebilirsiniz
+        var container = document.getElementById('personsContainer');
+        container.innerHTML = '';
+        persons.forEach(function(person) {
+            var personDiv = document.createElement('div');
+            personDiv.className = 'person-avatar';
+            personDiv.innerHTML = `
+                <p>${person.firstName}<br> ${person.lastName}</p>
+            `;
+            container.appendChild(personDiv);
+        });
+    }
+
+    loadPersons(); // Sayfa yüklendiğinde kişileri getir
 });
 $(document).ready(function() {
     // Kişi ekleme

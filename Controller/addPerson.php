@@ -1,3 +1,4 @@
+
 <?php
 session_start();
 include ("../dbConnection.php");
@@ -21,6 +22,20 @@ try {
     $stmt->bindParam(':birthDate', $birthDate);
     $stmt->bindParam(':deathDate', $deathDate);
     $stmt->execute();
+
+    // Yeni eklenen kişinin ID'sini al
+    $personID = $conn->lastInsertId();
+    
+    // parentNo boş değilse, ilişkileri ekle
+    if (!empty($parentNo) || !empty($wifeNo)) {
+        $sqlRelation = "INSERT INTO tbl_relationship (personID, parentNo, wifeNo)
+        VALUES (:personID, :parentNo, :wifeNo)";
+        $stmtRelation = $conn->prepare($sqlRelation);
+        $stmtRelation->bindParam(':personID', $personID);
+        $stmtRelation->bindParam(':parentNo', $parentNo);
+        $stmtRelation->bindParam(':wifeNo', $wifeNo);
+        $stmtRelation->execute();
+    }
 } catch (PDOException $e) {
     echo "Veritabanı hatası: " . $e->getMessage();
 }
