@@ -28,19 +28,33 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
 <body>
+<div class="tree-container" id="treeContainer">
+    <?php
+    $processedPersonIDs = []; 
+    foreach ($relations as $relation){
+        if (!in_array($relation["personID"], $processedPersonIDs)) {
+            $processedPersonIDs[] = $relation["personID"]; 
+        }else{
+    ?>
+    <div class="family">
+        
 <?php 
-foreach ($persons as $person) { ?>
-    <div class="tree-container" id="treeContainer">
-            <div class="circleContainer">
-                <div class="content">
-                    <div class="firstName" id="firstName" value="<?php echo $person['firstName'] ?>"><?php echo $person['firstName'] ?></div>
-                    <div class="lastName" id="lastName" value="<?php echo $person['lastName'] ?> "><?php echo $person['lastName'] ?></div>
-                </div>
-                <div class="plus-sign" data-userid="<?php echo $person['personID'] ?>">+</div>
-            </div>
+    
+foreach ($persons as $person) {?>
+    <div class="parent">
+        <div class="circleContainer">
+            <div class="firstName" id="firstName" value="<?php echo $person['firstName'] ?>"><?php echo $person['firstName'] ?></div>
+            <div class="lastName" id="lastName" value="<?php echo $person['lastName'] ?> "><?php echo $person['lastName'] ?></div>
+        </div>
+        <div class="plus-sign" data-userid="<?php echo $person['personID'] ?>">+</div>
     </div>
     <?php } ?>
-
+    </div>
+    <?php
+}
+}
+?>
+    </div>
     <!-- Popup Form -->
     <div id="popupForm" class="popup" >
         <div class="popup-content">
@@ -65,7 +79,7 @@ foreach ($persons as $person) { ?>
                     <option value="es">Eş</option>
                 </select><br>
                 <button type="button" id="addPerson">Add Person</button>
-            </form>
+         </form>
         </div>
     </div>
     <script src="script.js"></script>
