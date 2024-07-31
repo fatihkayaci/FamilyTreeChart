@@ -1,49 +1,73 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
+    <?php
+        session_start();
+        include("dbConnection.php");
+        
+        try {
+            // Kişileri çek
+            $sqlPersons = "SELECT * FROM tbl_person";
+            $stmtPersons = $conn->prepare($sqlPersons);
+            $stmtPersons->execute();
+            $persons = $stmtPersons->fetchAll(PDO::FETCH_ASSOC);    
+           
+            // İlişkileri çek
+            $sqlRelations = "SELECT * FROM tbl_relationship";
+            $stmtRelations = $conn->prepare($sqlRelations);
+            $stmtRelations->execute();
+            $relations = $stmtRelations->fetchAll(PDO::FETCH_ASSOC);
+
+        } catch (PDOException $e) {
+            echo json_encode(array("error" => "Veritabanı hatası: " . $e->getMessage()));
+        }?>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Family Tree Chart</title>
-    <link rel="stylesheet" href="style.css">
+    <title>Family Tree</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
 <body>
-    <!-- Buton -->
-    <button id="openPopup">Yeni Kişi Ekle</button>
+<?php 
+foreach ($persons as $person) { ?>
+    <div class="tree-container" id="treeContainer">
+            <div class="circleContainer">
+                <div class="content">
+                    <div class="firstName" id="firstName" value="<?php echo $person['firstName'] ?>"><?php echo $person['firstName'] ?></div>
+                    <div class="lastName" id="lastName" value="<?php echo $person['lastName'] ?> "><?php echo $person['lastName'] ?></div>
+                </div>
+                <div class="plus-sign" data-userid="<?php echo $person['personID'] ?>">+</div>
+            </div>
+    </div>
+    <?php } ?>
 
-    <!-- Popup -->
-    <div id="popup" class="popup">
+    <!-- Popup Form -->
+    <div id="popupForm" class="popup" >
         <div class="popup-content">
             <span class="close">&times;</span>
-            <h2>Yeni Kişi Ekle</h2>
-            <form id="addPersonForm">
-                <label for="firstName">İsim:</label>
-                <input type="text" id="firstName" name="firstName" required><br><br>
-                <label for="lastName">Soyisim:</label>
-                <input type="text" id="lastName" name="lastName" required><br><br>
-                <label for="birthDate">Doğum Tarihi:</label>
-                <input type="date" id="birthDate" name="birthDate"><br><br>
-                <label for="deathDate">Ölüm Tarihi:</label>
-                <input type="date" id="deathDate" name="deathDate"><br><br>
+            <form id="personForm">
+                <label for="firstName">First Name:</label>
+                <input type="text" id="firstName" name="firstName" required><br>
+                <label for="lastName">Last Name:</label>
+                <input type="text" id="lastName" name="lastName" required><br>
+                <label for="birthDate">Birth Date:</label>
+                <input type="date" id="birthDate" name="birthDate"><br>
+                <label for="deathDate">Death Date:</label>
+                <input type="date" id="deathDate" name="deathDate"><br>
                 <label for="gender">Cinsiyet:</label>
                 <select id="gender" name="gender">
                     <option value="male">Erkek</option>
                     <option value="female">Kadın</option>
-                </select><br><br>
-                <label for="parentNo">Anne/Baba:</label>
-                <select id="parentNo" name="parentNo">
-                    <option value="">Seçiniz</option>
-                </select><br><br>
-                <label for="wifeNo">Eş No:</label>
-                <input type="number" id="wifeNo" name="wifeNo"><br><br>
-                <button type="button" id="addPerson">Ekle</button>
+                </select><br>
+                <label for="relation">Relation:</label>
+                <select id="relation" name="relation">
+                    <option value="cocuk">Çocuk</option>
+                    <option value="es">Eş</option>
+                </select><br>
+                <button type="button" id="addPerson">Add Person</button>
             </form>
         </div>
     </div>
-
-    <!-- Kişiler Container -->
-    <div id="personsContainer"></div>
-
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <script src="script.js"></script>
 </body>
 </html>

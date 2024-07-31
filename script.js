@@ -1,166 +1,59 @@
-document.addEventListener('DOMContentLoaded', function() {
-    var popup = document.getElementById('popup');
-    var openPopupButton = document.getElementById('openPopup');
-    var closePopupButton = document.getElementsByClassName('close')[0];
-    var parentSelect = document.getElementById('parentNo');
-    // Butona tıklanınca popup'ı aç
-    openPopupButton.onclick = function() {
-        popup.style.display = 'block';
-    }
+$(document).ready(function() {
+    var selectedPerson = null;
+    // popup açıp kapatma işlemi
+    $('.plus-sign').click(function() {
+        selectedPerson = $(this).data('userid');
+        $('#popupForm').show();
+    });
 
-    // Kapatma butonuna tıklanınca popup'ı kapat
-    closePopupButton.onclick = function() {
-        popup.style.display = 'none';
-    }
+    // Kapatma düğmesine tıklama olayını dinle
+    $('.popup .close').click(function() {
+        $('#popupForm').hide();
+    });
 
-    // Popup'ın dışında bir yere tıklanırsa popup'ı kapat
-    window.onclick = function(event) {
-        if (event.target == popup) {
-            popup.style.display = 'none';
+    // Popup dışında bir yere tıklanırsa popup'ı kapat
+    $(window).click(function(event) {
+        if ($(event.target).is('#popupForm')) {
+            $('#popupForm').hide();
         }
-    }
+    });
 
-    // Kişi ekleme
-    $('#addPerson').on('click', function() {
-        var firstName = $('#firstName').val();
-        var lastName = $('#lastName').val();
-        var birthDate = $('#birthDate').val();
-        var deathDate = $('#deathDate').val();
-        var gender = $('#gender').val();
-        var parentNo = $('#parentNo').val() || null;
-        var wifeNo = $('#wifeNo').val() || null;
-        console.log(parentNo);
+    // add person
+    $('#addPerson').click(function() {
+        var formData = {
+            firstName: $('input[name="firstName"]').val(),
+            lastName: $('input[name="lastName"]').val(),
+            birthDate: $('input[name="birthDate"]').val(),
+            deathDate: $('input[name="deathDate"]').val() || null,
+            gender: $('select[name="gender"]').val(),  // Burada select elemanının değerini alıyoruz 
+            relation: $('select[name="relation"]').val(),  // Burada select elemanının değerini alıyoruz
+            selectedPerson: selectedPerson
+        }
+        // console.log(formData.firstName);
+        // console.log(formData.lastName);
+        // console.log(formData.birthDate);
+        // console.log(formData.deathDate);
+        // console.log(formData.relation);
+        // console.log(formData.selectedPerson);
         $.ajax({
-            url: 'Controller/addPerson.php',  // PHP dosyasının yolu
+            url: 'Controller/addPerson.php',
             type: 'POST',
             data: {
-                firstName: firstName,
-                lastName: lastName,
-                birthDate: birthDate,
-                deathDate: deathDate,
-                gender: gender,
-                parentNo: parentNo,
-                wifeNo: wifeNo
+                personID:formData.selectedPerson,
+                firstName: formData.firstName,
+                lastName: formData.lastName,
+                birthDate: formData.birthDate,
+                deathDate: formData.deathDate,
+                gender: formData.gender,
+                relation: formData.relation
             },
             success: function(response) {
-                alert("Başarıyla eklendi");
+                alert(response);
                 location.reload();
             },
-            error: function(xhr, status, error) {
-                alert('Bir hata oluştu: ' + error);
+            error: function(error) {
+                console.error("AJAX hatası: ", error);
             }
         });
     });
-   // Verileri yüklemek için fonksiyon
-   function loadParentOptions() {
-    $.ajax({
-        url: 'Controller/getParents.php',
-        type: 'GET',
-        dataType: 'json',
-        success: function(data) {
-            if (data.error) {
-                alert(data.error);
-                return;
-            }
-            populateParentSelect(data);
-        },
-        error: function(xhr, status, error) {
-            alert('Bir hata oluştu: ' + error);
-        }
-    });
-}
-function populateParentSelect(data) {
-    parentSelect.innerHTML = '<option value="">Seçiniz</option>';
-    let displayedWifeNos = new Set();
-
-    data.forEach(function(group) {
-        if (group.names.length > 0) {
-            var option = document.createElement('option');
-            // `group.persons` dizisinden ilk `personID`'yi alarak id olarak kullanıyoruz
-            if (group.persons.length > 0) {
-                option.value = group.persons[0].personID; // ilk kişinin `personID`'sini alıyoruz
-            }
-
-            option.textContent = group.names;
-
-            // Eğer `wifeNo` değerini daha önce eklenmediyse listeye ekle
-            if (!displayedWifeNos.has(group.wifeNo)) {
-                parentSelect.appendChild(option);
-                displayedWifeNos.add(group.wifeNo);
-            }
-        }
-    });
-}
-
-
-loadParentOptions(); // Sayfa yüklendiğinde `select` seçeneklerini yükle
-    function loadTree() {
-        $.ajax({
-            url: 'Controller/getRelationships.php',
-            type: 'GET',
-            dataType: 'json',
-            success: function(relations) {
-                if (relations.error) {
-                    alert(relations.error);
-                    return;
-                }
-                $.ajax({
-                    url: 'Controller/getPersons.php',
-                    type: 'GET',
-                    dataType: 'json',
-                    success: function(persons) {
-                        if (persons.error) {
-                            alert(persons.error);
-                            return;
-                        }
-                        drawFamilyTree(persons, relations);
-                    },
-                    error: function(xhr, status, error) {
-                        alert('Bir hata oluştu: ' + error);
-                    }
-                });
-            },
-            error: function(xhr, status, error) {
-                alert('Bir hata oluştu: ' + error);
-            }
-        });
-    }
-{/* <img src="path/to/default/avatar.png" alt="${person.firstName}" class="avatar-img"> */}
-                        
-    function drawFamilyTree(persons, relationships) {
-        var container = document.getElementById('personsContainer');
-        container.innerHTML = '';
-
-        // Kişileri parentNo'ya göre grupla
-        var parentMap = {};
-        relationships.forEach(function(rel) {
-            if (!parentMap[rel.parentNo]) {
-                parentMap[rel.parentNo] = [];
-            }
-            parentMap[rel.parentNo].push(rel);
-        });
-
-        // Her bir parentNo grubunu çiz
-        for (var parentNo in parentMap) {
-            var rowDiv = document.createElement('div');
-            rowDiv.className = 'person-row';
-
-            parentMap[parentNo].forEach(function(rel) {
-                var person = persons.find(p => p.personID == rel.personID);
-                if (person) {
-                    var personDiv = document.createElement('div');
-                    personDiv.className = 'person-avatar';
-                    personDiv.innerHTML = `
-                        <p>${person.firstName}<br> ${person.lastName}</p>
-                    `;
-                    rowDiv.appendChild(personDiv);
-                }
-            });
-
-            // Kişilerin parentNo değerine göre alt alta düzenlenmesi
-            container.appendChild(rowDiv);
-        }
-    }
-
-    loadTree(); // Sayfa yüklendiğinde ağaç verilerini getir
 });

@@ -4,38 +4,47 @@ session_start();
 include ("../dbConnection.php");
 
 try {
+    $personID = $_POST['personID'];
     $firstName = $_POST['firstName'];
     $lastName = $_POST['lastName'];
-    $gender = $_POST['gender'];
-    $birthDate = $_POST['birthDate']; // Kullanıcıdan gelen tarih: "15 Temmuz 2024"
+    $birthDate = $_POST['birthDate'];
     $deathDate = $_POST['deathDate'];
+    $gender = $_POST['gender'];
+    $relation = $_POST['relation'];
     
-    $parentNo = $_POST['parentNo'];
-    $wifeNo = $_POST['wifeNo'];
-
-    $sql = "INSERT INTO tbl_person (firstName, lastName, gender, birthDate, deathDate)
-    VALUES (:firstName, :lastName, :gender, :birthDate, :deathDate)";
+    $sql = "INSERT INTO tbl_person (firstName, lastName, birthDate, deathDate, gender)
+    VALUES (:firstName, :lastName, :birthDate, :deathDate, :gender)";
     $stmt = $conn->prepare($sql);
     $stmt->bindParam(':firstName', $firstName);
     $stmt->bindParam(':lastName', $lastName);
-    $stmt->bindParam(':gender', $gender);
     $stmt->bindParam(':birthDate', $birthDate);
     $stmt->bindParam(':deathDate', $deathDate);
+    $stmt->bindParam(':gender', $gender);
     $stmt->execute();
 
-    // Yeni eklenen kişinin ID'sini al
-    $personID = $conn->lastInsertId();
+    $lastPersonID = $conn->lastInsertId();
+    $sqlRelation = "INSERT INTO tbl_relationship (personID, childNo, wifeNo)
+                    VALUES (:personID, :childNo, :wifeNo)";
+    $stmtRelation = $conn->prepare($sqlRelation);
     
-    // parentNo boş değilse, ilişkileri ekle
-    if (!empty($parentNo) || !empty($wifeNo)) {
-        $sqlRelation = "INSERT INTO tbl_relationship (personID, parentNo, wifeNo)
-        VALUES (:personID, :parentNo, :wifeNo)";
-        $stmtRelation = $conn->prepare($sqlRelation);
-        $stmtRelation->bindParam(':personID', $personID);
-        $stmtRelation->bindParam(':parentNo', $parentNo);
-        $stmtRelation->bindParam(':wifeNo', $wifeNo);
-        $stmtRelation->execute();
+    // Parametreleri bağlayın
+    $stmtRelation->bindParam(':personID', $personID);
+    $stmtRelation->bindParam(':childNo', $childNo, PDO::PARAM_INT);
+    $stmtRelation->bindParam(':wifeNo', $wifeNo, PDO::PARAM_INT);
+
+    // `childNo` ve `wifeNo` değerlerini `NULL` olarak ayarlayın
+    $childNo = null;
+    $wifeNo = null;
+
+    // İlişki türüne göre uygun parametreyi ayarlayın
+    if ($relation == "cocuk") {
+        $childNo = $lastPersonID;
+    } elseif ($relation == "es") {
+        $wifeNo = $lastPersonID;
     }
+
+    // Sorguyu çalıştırın
+    $stmtRelation->execute();
 } catch (PDOException $e) {
     echo "Veritabanı hatası: " . $e->getMessage();
 }
